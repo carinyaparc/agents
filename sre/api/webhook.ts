@@ -21,12 +21,34 @@ function verifySentryWebhook(body: string, header: string, secret: string): bool
   return timingSafeEqual(headerBuf, expectedBuf);
 }
 
+function getHeader(req: VercelRequest, name: string): string | undefined {
+  const value = req.headers[name];
+  if (typeof value === "string") {
+    return value;
+  }
+  return Array.isArray(value) ? value[0] : undefined;
+}
+
 function getIssueId(payload: unknown): string | undefined {
   if (!payload || typeof payload !== "object") {
     return undefined;
   }
-  const data = payload as { data?: { issue?: { id?: string } } };
-  return data.data?.issue?.id;
+  const data = payload as {
+    data?: {
+      issue?: { id?: string };
+      event?: { issue_id?: string };
+    };
+  };
+  return data.data?.event?.issue_id ?? data.data?.issue?.id;
+}
+
+function isTriageWebhook(req: VercelRequest, payload: unknown): boolean {
+  if (!payload || typeof payload !== "object") {
+    return false;
+  }
+  const resource = getHeader(req, "sentry-hook-resource");
+  const action = (payload as { action?: string }).action;
+  return resource === "event_alert" && action === "triggered";
 }
 
 export default async function handler(
@@ -56,6 +78,11 @@ export default async function handler(
     payload = JSON.parse(rawBody) as unknown;
   } catch {
     res.status(400).json({ error: "Invalid JSON body" });
+    return;
+  }
+
+  if (!isTriageWebhook(req, payload)) {
+    res.status(204).end();
     return;
   }
 

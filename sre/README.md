@@ -38,6 +38,8 @@ Service account `carinya-sre-agent` needs **Issues — Read and Write** on that 
 
 Point the Sentry integration at the deployed `/api/webhook` URL and set `SENTRY_WEBHOOK_SECRET` to match.
 
+The handler processes **issue alert** webhooks only (`Sentry-Hook-Resource: event_alert`, `action: triggered`). Other hook types (e.g. issue lifecycle) receive `204 No Content` and are not triaged.
+
 ## Idempotency
 
 Before creating an issue, the agent searches for an open GitHub issue whose body contains a `carinya-sre:sentry-issue-id:` marker matching the Sentry issue ID. Closed issues are excluded on purpose — if the same error recurs after a fix, a new issue is opened.
