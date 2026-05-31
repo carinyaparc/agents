@@ -39,7 +39,7 @@ carinya-sre-agent (Vercel serverless)
 | Enrich | Fetch stack trace, frequency, suspect commits from Sentry API |
 | Classify | Call Claude API to determine severity, category, and agent-fixability |
 | Create | Open a structured GitHub Issue on `carinyaparc/website` |
-| Label | Apply labels: `bug`, `p1/p2/p3`, `agent-queue` or `needs-human` |
+| Label | Apply labels: `bug`, `agent-queue` or `needs-human`; set issue type `Bug` and Priority field (P1→Urgent, P2→High, P3→Medium) |
 | Document | Confluence page per P1 incident (future) |
 
 ---

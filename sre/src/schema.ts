@@ -80,8 +80,27 @@ ${result.suggestedFix}
 <!-- ${sentryIssueMarker(sentryIssueId)} -->`;
 }
 
-export function triageLabels(result: TriageResult): string[] {
-  const severity = result.severity.toLowerCase();
+export const GITHUB_PRIORITY_FIELD_NAME = "Priority";
+
+export type GitHubPriority = "Urgent" | "High" | "Medium" | "Low";
+
+export interface TriageIssueMetadata {
+  labels: string[];
+  type: "Bug";
+  priority: GitHubPriority;
+}
+
+const SEVERITY_TO_PRIORITY: Record<Severity, GitHubPriority> = {
+  P1: "Urgent",
+  P2: "High",
+  P3: "Medium",
+};
+
+export function triageIssueMetadata(result: TriageResult): TriageIssueMetadata {
   const queue = result.fixable ? "agent-queue" : "needs-human";
-  return ["bug", severity, queue];
+  return {
+    labels: ["bug", queue],
+    type: "Bug",
+    priority: SEVERITY_TO_PRIORITY[result.severity],
+  };
 }

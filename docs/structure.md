@@ -79,12 +79,11 @@ Set up once in GitHub repo settings before first run:
 
 ```
 bug
-p1
-p2
-p3
 agent-queue
 needs-human
 ```
+
+Issue type `Bug` and the org **Priority** field (`Urgent` / `High` / `Medium` / `Low`) are set via the GitHub API — not as labels. The agent resolves the Priority field by name from the org identified by `GITHUB_REPO_OWNER`.
 
 ---
 

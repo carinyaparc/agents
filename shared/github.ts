@@ -2,6 +2,8 @@ import type { GitHubIssueInput } from "./types.js";
 
 const GITHUB_API_URL = "https://api.github.com";
 
+const issueFieldIdCache = new Map<string, number>();
+
 export interface GitHubClientOptions {
   token: string;
 }
@@ -11,6 +13,36 @@ export class GitHubClient {
 
   constructor(options: GitHubClientOptions) {
     this.token = options.token;
+  }
+
+  async getOrgIssueFieldId(org: string, fieldName: string): Promise<number> {
+    const cacheKey = `${org}:${fieldName}`;
+    const cached = issueFieldIdCache.get(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const response = await fetch(`${GITHUB_API_URL}/orgs/${org}/issue-fields`, {
+      headers: {
+        authorization: `Bearer ${this.token}`,
+        accept: "application/vnd.github+json",
+        "x-github-api-version": "2022-11-28",
+      },
+    });
+
+    if (!response.ok) {
+      const detail = await response.text();
+      throw new Error(`GitHub issue fields API error (${response.status}): ${detail}`);
+    }
+
+    const fields = (await response.json()) as Array<{ id: number; name: string }>;
+    const field = fields.find((entry) => entry.name === fieldName);
+    if (!field) {
+      throw new Error(`Org issue field not found: ${fieldName}`);
+    }
+
+    issueFieldIdCache.set(cacheKey, field.id);
+    return field.id;
   }
 
   async createIssue(input: GitHubIssueInput): Promise<{ number: number; url: string }> {
@@ -28,6 +60,10 @@ export class GitHubClient {
           title: input.title,
           body: input.body,
           labels: input.labels,
+          ...(input.type !== undefined && { type: input.type }),
+          ...(input.issueFieldValues !== undefined && {
+            issue_field_values: input.issueFieldValues,
+          }),
         }),
       },
     );

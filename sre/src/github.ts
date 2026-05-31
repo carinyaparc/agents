@@ -1,8 +1,9 @@
 import { GitHubClient } from "@carinyaparc/shared/github";
 import {
   formatIssueBody,
+  GITHUB_PRIORITY_FIELD_NAME,
   sentryIssueMarker,
-  triageLabels,
+  triageIssueMetadata,
   type TriageResult,
 } from "./schema.js";
 
@@ -32,12 +33,21 @@ export async function createTriageIssue(
   options: CreateTriageIssueOptions,
 ): Promise<{ number: number; url: string }> {
   const client = new GitHubClient({ token: options.token });
+  const metadata = triageIssueMetadata(options.result);
+  const priorityFieldId = await client.getOrgIssueFieldId(
+    options.owner,
+    GITHUB_PRIORITY_FIELD_NAME,
+  );
 
   return client.createIssue({
     owner: options.owner,
     repo: options.repo,
     title: `[${options.result.severity}] ${options.result.summary}`,
     body: formatIssueBody(options.result, options.sentryIssueId),
-    labels: triageLabels(options.result),
+    labels: metadata.labels,
+    type: metadata.type,
+    issueFieldValues: [
+      { field_id: priorityFieldId, value: metadata.priority },
+    ],
   });
 }
