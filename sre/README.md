@@ -95,3 +95,32 @@ The handler processes **issue alert** webhooks only (`Sentry-Hook-Resource: even
 Before creating an issue, the agent searches for an open GitHub issue whose body contains a `carinya-sre:sentry-issue-id:` marker matching the Sentry issue ID. Closed issues are excluded on purpose — if the same error recurs after a fix, a new issue is opened.
 
 **Known limitation:** GitHub's search API indexes issue content with a delay of roughly 30–60 seconds. If Sentry retries the webhook (or fires duplicate events) within that window, both deliveries may pass the idempotency check before the first issue is indexed, resulting in duplicate issues.
+
+## Post-deploy test
+
+From `sre/` with `.env.local` filled in (same values as Vercel):
+
+```bash
+# Smoke: auth + routing (401, 204, no issue created)
+pnpm test:webhook
+
+# Full pipeline: uses latest unresolved Sentry issue
+pnpm test:webhook -- --fetch-issue
+
+# Full pipeline: specific Sentry issue id
+pnpm test:webhook -- --issue-id 1234567890
+
+# Different deployment URL
+pnpm test:webhook -- --base-url https://your-deployment.vercel.app --fetch-issue
+```
+
+| Step | Expected |
+|------|----------|
+| GET `/api/webhook` | 405 |
+| POST without signature | 401 |
+| POST `issue` lifecycle hook | 204 (ignored) |
+| POST `event_alert` + valid sig | 202 `{ accepted: true, issueId }` |
+| Vercel logs | No `SRE webhook processing failed` |
+| GitHub `website` issues | New issue with `Bug` type, Priority, labels |
+
+The script only verifies the HTTP layer. Confirm issue creation in GitHub and check Vercel logs for background failures (GitHub labels, Sentry API, Claude, app installation).

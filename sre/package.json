@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "test:webhook": "node --env-file=.env.local scripts/test-webhook.mjs"
+  },
   "dependencies": {
     "@carinyaparc/shared": "workspace:*",
     "@vercel/node": "^5.1.8"
