@@ -72,6 +72,9 @@ export default async function handler(
     const repo = process.env.GITHUB_REPO_NAME ?? "website";
     const token = requiredEnv("GITHUB_TOKEN");
 
+    // GitHub search indexes issue bodies with ~30–60s delay; duplicate webhooks
+    // within that window may both pass the idempotency check before the first
+    // issue is searchable.
     const existing = await findTriageIssueForSentry({
       token,
       owner,

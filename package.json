@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "build": "pnpm --filter @carinyaparc/shared build",
+    "typecheck": "pnpm build && tsc --noEmit",
     "lint": "eslint ."
   },
   "devDependencies": {

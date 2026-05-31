@@ -60,6 +60,8 @@ export class SentryClient {
       firstSeen: issue.firstSeen,
       lastSeen: issue.lastSeen,
       stackTrace,
+      // Last commit of the first release where Sentry saw the error — not Sentry's
+      // suspect-commit blame analysis (stack frame vs. diff correlation).
       suspectCommit: issue.firstRelease?.lastCommit?.id,
     };
   }

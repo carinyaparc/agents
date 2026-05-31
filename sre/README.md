@@ -37,3 +37,9 @@ Service account `carinya-sre-agent` needs **Issues — Read and Write** on that 
 ## Sentry webhook
 
 Point the Sentry integration at the deployed `/api/webhook` URL and set `SENTRY_WEBHOOK_SECRET` to match.
+
+## Idempotency
+
+Before creating an issue, the agent searches for an open GitHub issue whose body contains a `carinya-sre:sentry-issue-id:` marker matching the Sentry issue ID. Closed issues are excluded on purpose — if the same error recurs after a fix, a new issue is opened.
+
+**Known limitation:** GitHub's search API indexes issue content with a delay of roughly 30–60 seconds. If Sentry retries the webhook (or fires duplicate events) within that window, both deliveries may pass the idempotency check before the first issue is indexed, resulting in duplicate issues.

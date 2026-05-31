@@ -3,9 +3,26 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "pnpm run build"
+  },
   "exports": {
-    "./claude": "./claude.ts",
-    "./github": "./github.ts",
-    "./types": "./types.ts"
+    "./claude": {
+      "types": "./dist/claude.d.ts",
+      "import": "./dist/claude.js"
+    },
+    "./github": {
+      "types": "./dist/github.d.ts",
+      "import": "./dist/github.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js"
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
   }
 }

@@ -22,7 +22,8 @@ export async function findTriageIssueForSentry(
 ): Promise<{ number: number; url: string } | null> {
   const client = new GitHubClient({ token: options.token });
   const marker = sentryIssueMarker(options.sentryIssueId);
-  const query = `repo:${options.owner}/${options.repo} ${marker} is:issue is:open`;
+  // closed issues are excluded intentionally — a recurrence should open a new issue
+  const query = `repo:${options.owner}/${options.repo} "${marker}" is:issue is:open`;
   const issues = await client.searchIssues(query);
   return issues[0] ?? null;
 }

@@ -14,7 +14,7 @@ This monorepo hosts autonomous agents for the Carinya Parc platform. Each agent 
 - TypeScript with strict mode; ESM (`"type": "module"`).
 - Credentials only in Vercel env vars or local `.env` (never committed).
 - Issue bodies created by agents must follow the contract in `sre/src/schema.ts`.
-- Shared API wrappers belong in `shared/`; agent-specific orchestration stays under each agent's `src/`.
+- Shared API wrappers belong in `shared/`; agent-specific orchestration stays under each agent's `src/`. The shared package compiles to `dist/` on install (`prepare`); run `pnpm build` after changing shared sources.
 
 ## Adding a new agent
 

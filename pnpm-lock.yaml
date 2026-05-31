@@ -24,7 +24,11 @@ importers:
         specifier: ^8.33.1
         version: 8.60.0(eslint@9.39.4)(typescript@5.9.3)
 
-  shared: {}
+  shared:
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
 
   sre:
     dependencies:

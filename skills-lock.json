@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "refactor-code": {
+      "source": "daddia/skills",
+      "sourceType": "github",
+      "skillPath": "refactor-code/SKILL.md",
+      "computedHash": "96fd5290322bc2e0fd5d4cef2d40d6b68b5c58054324faf9ae7575b8a4c46f3b"
+    },
+    "review-code": {
+      "source": "daddia/skills",
+      "sourceType": "github",
+      "skillPath": "review-code/SKILL.md",
+      "computedHash": "b420b7f128e2b2326229999ecb6fe83516a7311785f231dcc29ea23e25df2f9c"
+    }
+  }
+}

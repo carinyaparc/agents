@@ -10,5 +10,5 @@
     "resolveJsonModule": true,
     "isolatedModules": true
   },
-  "include": ["sre/**/*.ts", "shared/**/*.ts"]
+  "include": ["sre/**/*.ts"]
 }
