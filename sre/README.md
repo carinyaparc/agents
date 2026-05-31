@@ -124,3 +124,24 @@ pnpm test:webhook --base-url https://your-deployment.vercel.app --fetch-issue
 | GitHub `website` issues | New issue with `Bug` type, Priority, labels |
 
 The script only verifies the HTTP layer. Confirm issue creation in GitHub and check Vercel logs for background failures (GitHub labels, Sentry API, Claude, app installation).
+
+## Observability
+
+All runtime logs are **JSON lines** on stdout. In Vercel → Logs, filter by `traceId` or `sentryIssueId`.
+
+Each webhook delivery gets a `traceId` (returned in the `202` response). Sentry's `Request-ID` header is captured as `requestId` when present.
+
+| Event | Level | When |
+|-------|-------|------|
+| `webhook.accepted` | info | Valid alert received, processing started |
+| `span.start` / `span.end` | info | Each pipeline step with `durationMs` |
+| `fetch.retry` | warn | Outbound HTTP retry (GitHub timeouts) |
+| `triage.duplicate_skipped` | info | Idempotency hit |
+| `triage.complete` | info | GitHub issue created |
+| `triage.failed` | error | Pipeline error with nested `error.cause` |
+
+Example log line:
+
+```json
+{"ts":"...","level":"info","message":"span.end","service":"carinya-sre","traceId":"...","sentryIssueId":"7516242952","repo":"carinyaparc/website","span":"github.app_auth","durationMs":842,"outcome":"ok"}
+```

@@ -1,4 +1,5 @@
 import { createSign } from "node:crypto";
+import { fetchWithRetry } from "./fetch-retry.js";
 
 const GITHUB_API_URL = "https://api.github.com";
 
@@ -46,15 +47,20 @@ async function githubAppFetch<T>(
   jwt: string,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(`${GITHUB_API_URL}${path}`, {
-    ...init,
-    headers: {
-      authorization: `Bearer ${jwt}`,
-      accept: "application/vnd.github+json",
-      "x-github-api-version": "2022-11-28",
-      ...(init?.headers ?? {}),
+  const url = `${GITHUB_API_URL}${path}`;
+  const response = await fetchWithRetry(
+    url,
+    {
+      ...init,
+      headers: {
+        authorization: `Bearer ${jwt}`,
+        accept: "application/vnd.github+json",
+        "x-github-api-version": "2022-11-28",
+        ...(init?.headers ?? {}),
+      },
     },
-  });
+    { label: `GitHub App API ${path}` },
+  );
 
   if (!response.ok) {
     const detail = await response.text();

@@ -3,6 +3,7 @@ import {
   getInstallationAccessToken,
   type GitHubAppRepoTarget,
 } from "./github-app.js";
+import { fetchWithRetry } from "./fetch-retry.js";
 
 const GITHUB_API_URL = "https://api.github.com";
 
@@ -31,13 +32,17 @@ export class GitHubClient {
       return cached;
     }
 
-    const response = await fetch(`${GITHUB_API_URL}/orgs/${org}/issue-fields`, {
-      headers: {
-        authorization: `Bearer ${this.token}`,
-        accept: "application/vnd.github+json",
-        "x-github-api-version": "2022-11-28",
+    const response = await fetchWithRetry(
+      `${GITHUB_API_URL}/orgs/${org}/issue-fields`,
+      {
+        headers: {
+          authorization: `Bearer ${this.token}`,
+          accept: "application/vnd.github+json",
+          "x-github-api-version": "2022-11-28",
+        },
       },
-    });
+      { label: `GitHub issue fields orgs/${org}` },
+    );
 
     if (!response.ok) {
       const detail = await response.text();
@@ -55,7 +60,7 @@ export class GitHubClient {
   }
 
   async createIssue(input: GitHubIssueInput): Promise<{ number: number; url: string }> {
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `${GITHUB_API_URL}/repos/${input.owner}/${input.repo}/issues`,
       {
         method: "POST",
@@ -75,6 +80,7 @@ export class GitHubClient {
           }),
         }),
       },
+      { label: `GitHub create issue ${input.owner}/${input.repo}` },
     );
 
     if (!response.ok) {
@@ -89,7 +95,7 @@ export class GitHubClient {
   async searchIssues(
     query: string,
   ): Promise<Array<{ number: number; url: string }>> {
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `${GITHUB_API_URL}/search/issues?q=${encodeURIComponent(query)}`,
       {
         headers: {
@@ -98,6 +104,7 @@ export class GitHubClient {
           "x-github-api-version": "2022-11-28",
         },
       },
+      { label: "GitHub search issues" },
     );
 
     if (!response.ok) {
