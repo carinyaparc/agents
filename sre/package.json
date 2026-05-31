@@ -1,0 +1,10 @@
+{
+  "name": "@carinyaparc/sre",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@carinyaparc/shared": "workspace:*",
+    "@vercel/node": "^5.1.8"
+  }
+}

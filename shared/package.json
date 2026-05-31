@@ -1,0 +1,11 @@
+{
+  "name": "@carinyaparc/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./claude": "./claude.ts",
+    "./github": "./github.ts",
+    "./types": "./types.ts"
+  }
+}
