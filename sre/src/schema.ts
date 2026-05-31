@@ -37,7 +37,13 @@ export interface SentryAlertContext {
   suspectCommit?: string;
 }
 
-export function formatIssueBody(result: TriageResult): string {
+export const SENTRY_ISSUE_MARKER_PREFIX = "carinya-sre:sentry-issue-id:";
+
+export function sentryIssueMarker(sentryIssueId: string): string {
+  return `${SENTRY_ISSUE_MARKER_PREFIX}${sentryIssueId}`;
+}
+
+export function formatIssueBody(result: TriageResult, sentryIssueId: string): string {
   const fileLine = result.file ?? "unknown";
   const suspect = result.suspectCommit ?? "unavailable";
   const testLine = result.testRequired
@@ -69,7 +75,9 @@ ${result.suggestedFix}
 ## Agent instructions
 - Fixable: ${result.fixable ? "yes" : "no"}
 - Scope: ${result.scope}
-- Test required: ${testLine}`;
+- Test required: ${testLine}
+
+<!-- ${sentryIssueMarker(sentryIssueId)} -->`;
 }
 
 export function triageLabels(result: TriageResult): string[] {

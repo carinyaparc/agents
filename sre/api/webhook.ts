@@ -1,15 +1,24 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createTriageIssue } from "../src/github.js";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { buffer } from "node:stream/consumers";
+import { createTriageIssue, findTriageIssueForSentry } from "../src/github.js";
 import { SentryClient } from "../src/sentry.js";
 import { triageAlert } from "../src/triage.js";
 
-function verifySentryWebhook(req: VercelRequest, secret: string): boolean {
-  const header = req.headers["sentry-hook-signature"];
-  if (!header || typeof header !== "string") {
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+function verifySentryWebhook(body: string, header: string, secret: string): boolean {
+  const expected = createHmac("sha256", secret).update(body).digest("hex");
+  const headerBuf = Buffer.from(header);
+  const expectedBuf = Buffer.from(expected);
+  if (headerBuf.length !== expectedBuf.length) {
     return false;
   }
-  // Sentry signs payloads with HMAC-SHA256; full verification implemented at deploy time.
-  return header.length > 0 && secret.length > 0;
+  return timingSafeEqual(headerBuf, expectedBuf);
 }
 
 function getIssueId(payload: unknown): string | undefined {
@@ -29,13 +38,28 @@ export default async function handler(
     return;
   }
 
+  const rawBody = (await buffer(req)).toString("utf8");
+
   const webhookSecret = process.env.SENTRY_WEBHOOK_SECRET;
-  if (!webhookSecret || !verifySentryWebhook(req, webhookSecret)) {
+  const signature = req.headers["sentry-hook-signature"];
+  if (
+    !webhookSecret ||
+    typeof signature !== "string" ||
+    !verifySentryWebhook(rawBody, signature, webhookSecret)
+  ) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
 
-  const issueId = getIssueId(req.body);
+  let payload: unknown;
+  try {
+    payload = JSON.parse(rawBody) as unknown;
+  } catch {
+    res.status(400).json({ error: "Invalid JSON body" });
+    return;
+  }
+
+  const issueId = getIssueId(payload);
   if (!issueId) {
     res.status(400).json({ error: "Missing Sentry issue id" });
     return;
@@ -44,6 +68,23 @@ export default async function handler(
   res.status(202).json({ accepted: true, issueId });
 
   try {
+    const owner = process.env.GITHUB_REPO_OWNER ?? "carinyaparc";
+    const repo = process.env.GITHUB_REPO_NAME ?? "website";
+    const token = requiredEnv("GITHUB_TOKEN");
+
+    const existing = await findTriageIssueForSentry({
+      token,
+      owner,
+      repo,
+      sentryIssueId: issueId,
+    });
+    if (existing) {
+      console.info(
+        `Skipping duplicate issue for Sentry ${issueId}: #${existing.number} ${existing.url}`,
+      );
+      return;
+    }
+
     const sentry = new SentryClient({
       token: requiredEnv("SENTRY_TOKEN"),
       orgSlug: requiredEnv("SENTRY_ORG_SLUG"),
@@ -57,9 +98,10 @@ export default async function handler(
     });
 
     await createTriageIssue({
-      token: requiredEnv("GITHUB_TOKEN"),
-      owner: process.env.GITHUB_REPO_OWNER ?? "carinyaparc",
-      repo: process.env.GITHUB_REPO_NAME ?? "website",
+      token,
+      owner,
+      repo,
+      sentryIssueId: issueId,
       result,
     });
   } catch (error) {

@@ -14,9 +14,6 @@ importers:
       '@types/node':
         specifier: ^22.15.29
         version: 22.19.19
-      '@vercel/node':
-        specifier: ^5.1.8
-        version: 5.8.8
       eslint:
         specifier: ^9.28.0
         version: 9.39.4

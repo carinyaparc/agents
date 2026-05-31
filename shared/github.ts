@@ -40,4 +40,33 @@ export class GitHubClient {
     const data = (await response.json()) as { number: number; html_url: string };
     return { number: data.number, url: data.html_url };
   }
+
+  async searchIssues(
+    query: string,
+  ): Promise<Array<{ number: number; url: string }>> {
+    const response = await fetch(
+      `${GITHUB_API_URL}/search/issues?q=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          authorization: `Bearer ${this.token}`,
+          accept: "application/vnd.github+json",
+          "x-github-api-version": "2022-11-28",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const detail = await response.text();
+      throw new Error(`GitHub search API error (${response.status}): ${detail}`);
+    }
+
+    const data = (await response.json()) as {
+      items: Array<{ number: number; html_url: string }>;
+    };
+
+    return data.items.map((item) => ({
+      number: item.number,
+      url: item.html_url,
+    }));
+  }
 }

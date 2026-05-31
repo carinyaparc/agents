@@ -1,15 +1,30 @@
 import { GitHubClient } from "@carinyaparc/shared/github";
 import {
   formatIssueBody,
+  sentryIssueMarker,
   triageLabels,
   type TriageResult,
 } from "./schema.js";
 
-export interface CreateTriageIssueOptions {
+export interface GitHubRepoOptions {
   token: string;
   owner: string;
   repo: string;
+}
+
+export interface CreateTriageIssueOptions extends GitHubRepoOptions {
+  sentryIssueId: string;
   result: TriageResult;
+}
+
+export async function findTriageIssueForSentry(
+  options: GitHubRepoOptions & { sentryIssueId: string },
+): Promise<{ number: number; url: string } | null> {
+  const client = new GitHubClient({ token: options.token });
+  const marker = sentryIssueMarker(options.sentryIssueId);
+  const query = `repo:${options.owner}/${options.repo} ${marker} is:issue is:open`;
+  const issues = await client.searchIssues(query);
+  return issues[0] ?? null;
 }
 
 export async function createTriageIssue(
@@ -21,7 +36,7 @@ export async function createTriageIssue(
     owner: options.owner,
     repo: options.repo,
     title: `[${options.result.severity}] ${options.result.summary}`,
-    body: formatIssueBody(options.result),
+    body: formatIssueBody(options.result, options.sentryIssueId),
     labels: triageLabels(options.result),
   });
 }

@@ -2,6 +2,29 @@ import type { SentryAlertContext } from "./schema.js";
 
 const SENTRY_API_URL = "https://sentry.io/api/0";
 
+type SentryEvent = {
+  entries: Array<{
+    type: string;
+    data?: { values?: Array<{ stacktrace?: { frames?: unknown[] } }> };
+  }>;
+};
+
+type SentryIssue = {
+  id: string;
+  title: string;
+  culprit?: string;
+  level: string;
+  count: string;
+  userCount: number;
+  firstSeen: string;
+  lastSeen: string;
+  firstRelease?: {
+    lastCommit?: {
+      id?: string;
+    };
+  };
+};
+
 export interface SentryClientOptions {
   token: string;
   orgSlug: string;
@@ -20,28 +43,12 @@ export class SentryClient {
   }
 
   async fetchAlertContext(issueId: string): Promise<SentryAlertContext> {
-    const issue = await this.get<{
-      id: string;
-      title: string;
-      culprit?: string;
-      level: string;
-      count: string;
-      userCount: number;
-      firstSeen: string;
-      lastSeen: string;
-    }>(`/projects/${this.orgSlug}/${this.projectSlug}/issues/${issueId}/`);
+    const issue = await this.get<SentryIssue>(
+      `/projects/${this.orgSlug}/${this.projectSlug}/issues/${issueId}/`,
+    );
 
-    const events = await this.get<
-      Array<{
-        entries: Array<{
-          type: string;
-          data?: { values?: Array<{ stacktrace?: { frames?: unknown[] } }> };
-        }>;
-      }>
-    >(`/issues/${issueId}/events/latest/`);
-
-    const stackTrace = formatStackTrace(events);
-    const suspectCommit = await this.fetchSuspectCommit(issueId);
+    const event = await this.get<SentryEvent>(`/issues/${issueId}/events/latest/`);
+    const stackTrace = formatStackTrace(event);
 
     return {
       issueId: issue.id,
@@ -53,19 +60,8 @@ export class SentryClient {
       firstSeen: issue.firstSeen,
       lastSeen: issue.lastSeen,
       stackTrace,
-      suspectCommit,
+      suspectCommit: issue.firstRelease?.lastCommit?.id,
     };
-  }
-
-  private async fetchSuspectCommit(issueId: string): Promise<string | undefined> {
-    try {
-      const commits = await this.get<Array<{ commit?: { id?: string } }>>(
-        `/issues/${issueId}/hashes/${issueId}/suspect-commits/`,
-      );
-      return commits[0]?.commit?.id;
-    } catch {
-      return undefined;
-    }
   }
 
   private async get<T>(path: string): Promise<T> {

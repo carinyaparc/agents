@@ -42,10 +42,17 @@ export async function triageAlert(options: TriageOptions): Promise<TriageResult>
     messages: [{ role: "user", content: userPrompt }],
   });
 
-  const parsed = JSON.parse(raw) as Omit<
+  type ClaudeTriageFields = Omit<
     TriageResult,
     "error" | "file" | "frequency" | "firstSeen" | "suspectCommit" | "stackTrace"
   >;
+
+  let parsed: ClaudeTriageFields;
+  try {
+    parsed = JSON.parse(raw) as ClaudeTriageFields;
+  } catch {
+    throw new Error(`Claude returned non-JSON: ${raw.slice(0, 200)}`);
+  }
 
   const hours = Math.max(
     1,

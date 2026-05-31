@@ -1,12 +1,17 @@
+# GitHub issue contract
+
+Canonical implementation: `sre/src/schema.ts` (`TriageResult`, `formatIssueBody`).
+
+Every issue created by the SRE agent uses this body shape:
+
 ## Summary
 [One-sentence description]
 
 ## Severity
-Priority: [P1 / P2 / P3]
-[brief impact statement]
+[P1 / P2 / P3] — [brief impact statement]
 
 ## Category
-[runtime error / API failure / performance / security]
+[JS error / API failure / performance / security]
 
 ## Context
 - Error: [message]
@@ -18,10 +23,14 @@ Priority: [P1 / P2 / P3]
 ## Stack trace
 [top 5 frames]
 
-## Potential fixes
-[Bullet points, 1–2 sentences]
+## Suggested fix
+[1–2 sentences]
 
 ## Agent instructions
 - Fixable: [yes / no]
 - Scope: [description]
 - Test required: [yes / no + what]
+
+<!-- carinya-sre:sentry-issue-id:[id] -->
+
+The HTML comment at the end is machine-readable metadata for webhook idempotency (not shown prominently in the GitHub UI).
