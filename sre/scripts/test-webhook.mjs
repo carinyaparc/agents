@@ -22,6 +22,9 @@ function parseArgs(argv) {
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
+    if (arg === "--") {
+      continue;
+    }
     if (arg === "--base-url") {
       options.baseUrl = argv[++i]?.replace(/\/$/, "");
     } else if (arg === "--issue-id") {
@@ -95,6 +98,11 @@ async function fetchLatestSentryIssueId() {
 
   if (!response.ok) {
     const detail = await response.text();
+    if (response.status === 401) {
+      throw new Error(
+        `Sentry API rejected SENTRY_TOKEN (401). Use the Auth Token from your Internal Integration (Tokens section), not the Client Secret. Detail: ${detail}`,
+      );
+    }
     throw new Error(`Sentry API error (${response.status}): ${detail}`);
   }
 

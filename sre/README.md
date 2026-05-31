@@ -105,13 +105,13 @@ From `sre/` with `.env.local` filled in (same values as Vercel):
 pnpm test:webhook
 
 # Full pipeline: uses latest unresolved Sentry issue
-pnpm test:webhook -- --fetch-issue
+pnpm test:webhook --fetch-issue
 
 # Full pipeline: specific Sentry issue id
-pnpm test:webhook -- --issue-id 1234567890
+pnpm test:webhook --issue-id 1234567890
 
 # Different deployment URL
-pnpm test:webhook -- --base-url https://your-deployment.vercel.app --fetch-issue
+pnpm test:webhook --base-url https://your-deployment.vercel.app --fetch-issue
 ```
 
 | Step | Expected |
