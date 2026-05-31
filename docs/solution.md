@@ -83,7 +83,7 @@ Every GitHub Issue created by `carinya-sre-agent` follows this schema:
 
 | Service account | Credential | Scope |
 |---|---|---|
-| `carinya-sre-agent` | `GITHUB_TOKEN` | `issues:write` on `carinyaparc/website` |
+| `carinya-agents` (GitHub App) | `GITHUB_APP_ID` + `GITHUB_APP_PRIVATE_KEY` | Issues write on target repos; Issue fields read on org |
 | `carinya-sre-agent` | `SENTRY_TOKEN` | Read-only on Carinya Parc Sentry project |
 | `carinya-sre-agent` | `CLAUDE_API_KEY` | Claude API (claude-sonnet-4-6) |
 

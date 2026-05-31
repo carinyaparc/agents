@@ -1,4 +1,8 @@
 import type { GitHubIssueInput } from "./types.js";
+import {
+  getInstallationAccessToken,
+  type GitHubAppRepoTarget,
+} from "./github-app.js";
 
 const GITHUB_API_URL = "https://api.github.com";
 
@@ -13,6 +17,11 @@ export class GitHubClient {
 
   constructor(options: GitHubClientOptions) {
     this.token = options.token;
+  }
+
+  static async forRepo(target: GitHubAppRepoTarget): Promise<GitHubClient> {
+    const token = await getInstallationAccessToken(target);
+    return new GitHubClient({ token });
   }
 
   async getOrgIssueFieldId(org: string, fieldName: string): Promise<number> {

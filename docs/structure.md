@@ -64,7 +64,8 @@ SENTRY_PROJECT_SLUG=
 SENTRY_ORG_SLUG=
 SENTRY_WEBHOOK_SECRET=
 
-GITHUB_TOKEN=
+GITHUB_APP_ID=
+GITHUB_APP_PRIVATE_KEY=
 GITHUB_REPO_OWNER=carinyaparc
 GITHUB_REPO_NAME=website
 
@@ -100,5 +101,5 @@ Issue type `Bug` and the org **Priority** field (`Urgent` / `High` / `Medium` / 
 
 ## Service account
 
-GitHub account: `carinya-sre-agent`
+GitHub App: `carinya-agents` (org-owned, installed on target repos)
 Permissions on `carinyaparc/website`: **Issues — Read and Write** only.

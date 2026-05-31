@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { buffer } from "node:stream/consumers";
 import { createTriageIssue, findTriageIssueForSentry } from "../src/github.js";
+import { GitHubClient } from "@carinyaparc/shared/github";
 import { SentryClient } from "../src/sentry.js";
 import { triageAlert } from "../src/triage.js";
 
@@ -97,13 +98,18 @@ export default async function handler(
   try {
     const owner = process.env.GITHUB_REPO_OWNER ?? "carinyaparc";
     const repo = process.env.GITHUB_REPO_NAME ?? "website";
-    const token = requiredEnv("GITHUB_TOKEN");
+    const github = await GitHubClient.forRepo({
+      appId: requiredEnv("GITHUB_APP_ID"),
+      privateKey: requiredEnv("GITHUB_APP_PRIVATE_KEY"),
+      owner,
+      repo,
+    });
 
     // GitHub search indexes issue bodies with ~30–60s delay; duplicate webhooks
     // within that window may both pass the idempotency check before the first
     // issue is searchable.
     const existing = await findTriageIssueForSentry({
-      token,
+      client: github,
       owner,
       repo,
       sentryIssueId: issueId,
@@ -128,7 +134,7 @@ export default async function handler(
     });
 
     await createTriageIssue({
-      token,
+      client: github,
       owner,
       repo,
       sentryIssueId: issueId,
